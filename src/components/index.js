@@ -1,5 +1,6 @@
 import Entidad, { calcularOffsetEntidad } from "./Entidad";
 import Relacion, { calcularOffsetRelacion } from "./Relacion";
+import Atributo, { calcularOffsetAtributo } from "./Atributo";
 
 const componentes = {
     Entidad: {
@@ -9,6 +10,10 @@ const componentes = {
     Relacion: {
         componente: Relacion,
         funcionOffset: calcularOffsetRelacion,
+    },
+    Atributo: {
+        componente: Atributo,
+        funcionOffset: calcularOffsetAtributo,
     }
 };
 
