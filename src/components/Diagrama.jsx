@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { Stage, Layer } from 'react-konva';
 import Linea from './Linea';
 import Componente from './Componente';
-import Texto from './Texto';
 
 const Diagrama = ({ cb, modo }) => {
     const stageRef = useRef(null);
@@ -16,8 +15,8 @@ const Diagrama = ({ cb, modo }) => {
     ]);
 
     const [enlaces, setEnlaces] = useState([
-        { idPrimero: 0, idSegundo: 1 },
-        { idPrimero: 2, idSegundo: 1 },
+        { idPrimero: 0, idSegundo: 1, text: "1..n" },
+        { idPrimero: 2, idSegundo: 1, text: "1..n" },
         { idPrimero: 3, idSegundo: 2 },
         { idPrimero: 4, idSegundo: 2 }
     ])
@@ -82,9 +81,9 @@ const Diagrama = ({ cb, modo }) => {
                         key={index}
                         figuraA={componentes[enlace.idPrimero]}
                         figuraB={componentes[enlace.idSegundo]}
+                        text={enlace.text}
                     />
                 ))}
-                <Texto x="100" y="300" text="hola mundo" />
             </Layer>
         </Stage>
     );

@@ -12,7 +12,9 @@ const Atributo = ({ x, y, text, onDragMove, onDragEnd, onDblClick }) => {
                 offsetX={width / 2}
                 offsetY={6}
                 align="center"
+                verticalAlign="center"
                 fontFamily="Ubuntu mono"
+
             />
         </Group>
     );
@@ -20,11 +22,12 @@ const Atributo = ({ x, y, text, onDragMove, onDragEnd, onDblClick }) => {
 
 const calcularOffsetAtributo = (componente) => {
     let width = (componente.text.length * 6.15) + 15;
+    let height = 24;
     return [
         { x: -(width / 2), y: 0 },
-        { x: 0, y: -(componente.height / 2) },
+        { x: 0, y: -(height / 2) },
         { x: (width / 2), y: 0 },
-        { x: 0, y: (componente.height / 2) },
+        { x: 0, y: (height / 2) },
     ];
 }
 

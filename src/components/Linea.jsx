@@ -2,7 +2,7 @@ import { Line, Text, Circle } from "react-konva";
 import React from 'react';
 import componentes from ".";
 
-const Linea = ({ figuraA, figuraB }) => {
+const Linea = ({ figuraA, figuraB, text }) => {
 
     function calculateDistance(x1, y1, x2, y2) {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
@@ -103,16 +103,11 @@ const Linea = ({ figuraA, figuraB }) => {
                 stroke="black"
                 strokeWidth={2}
             />
-            {/* <Line
-                points={nuevaLinea}
-                stroke="blue"
-                strokeWidth={2}
-            /> */}
             {
                 figuraA.type === "Entidad" &&
                 (
                     <Text
-                        text="1..n"
+                        text={text}
                         align="center"
                         verticalAlign="center"
                         fontSize={12}
