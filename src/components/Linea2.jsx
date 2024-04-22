@@ -101,13 +101,13 @@ const Linea = ({ figuraA, figuraB, text }) => {
             <Line
                 points={line}
                 stroke="black"
-                strokeWidth={1}
+                strokeWidth={2}
             />
             {
-                ((figuraA.type === "entidad") || (figuraA.type === "atributo")) &&
+                figuraA.type === "Entidad" &&
                 (
                     <Text
-                        text={text != "1..1" ? text : ""}
+                        text={text}
                         align="center"
                         verticalAlign="center"
                         fontSize={12}
@@ -120,14 +120,13 @@ const Linea = ({ figuraA, figuraB, text }) => {
                 )
             }
             {
-                figuraA.type === "atributo" &&
+                figuraA.type === "Atributo" &&
                 (
                     <Circle
                         x={line[0]}
                         y={line[1]}
                         radius={5}
                         stroke="black"
-                        strokeWidth={1}
                         fill={figuraA.clavePrimaria === true ? "black" : "white"}
                     />
                 )

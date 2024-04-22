@@ -1,15 +1,15 @@
-import { Group, Rect, Text } from "react-konva";
+import { Group, Rect, Text, Ellipse } from "react-konva";
 
-const Entidad = ({ x, y, nombre, onDragMove, onDragEnd, onDblClick, draggable }) => {
+const AtributoCompuesto = ({ x, y, nombre, onDragMove, onDragEnd, onDblClick }) => {
     let width = (nombre.length * 6.15) + 20;
     return (
-        <Group x={x} y={y} draggable={draggable == null ? true : false} onDragMove={onDragMove} onDragEnd={onDragEnd} onDblClick={onDblClick}>
-            <Rect
+        <Group x={x} y={y} draggable onDragMove={onDragMove} onDragEnd={onDragEnd} onDblClick={onDblClick}>
+            <Ellipse
                 width={width}
                 height={30}
                 fill="yellow"
-                offsetX={width / 2}
-                offsetY={30 / 2}
+                radiusX={width / 2}
+                radiusY={width / 4}
                 stroke="#000000"
                 strokeWidth={1}
             />
@@ -27,7 +27,7 @@ const Entidad = ({ x, y, nombre, onDragMove, onDragEnd, onDblClick, draggable })
     );
 };
 
-const calcularOffsetEntidad = (componente) => {
+const calcularOffsetAtributoCompuesto = (componente) => {
     let width = (componente.nombre.length * 6.15) + 20;
     return [
         { x: -(width / 2), y: 0 },
@@ -37,5 +37,5 @@ const calcularOffsetEntidad = (componente) => {
     ];
 }
 
-export default Entidad;
-export { calcularOffsetEntidad };
+export default AtributoCompuesto;
+export { calcularOffsetAtributoCompuesto };

@@ -24,8 +24,8 @@ const Texto = ({ x, y }) => {
                 x={100}
                 y={400}
                 text={text}
-                fontSize={16} // Customize font size as needed
-                fill="black" // Customize text color as you like
+                fontSize={16}
+                fill="black"
                 offsetX={100 / 2}
                 offsetY={8}
                 align="center"

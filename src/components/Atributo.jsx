@@ -1,12 +1,12 @@
 import { Group, Text } from "react-konva";
 
-const Atributo = ({ x, y, text, onDragMove, onDragEnd, onDblClick }) => {
-    let width = (text.length * 6.15) + 15;
+const Atributo = ({ x, y, nombre, onDragMove, onDragEnd, onDblClick }) => {
+    let width = (nombre.length * 6.15) + 15;
     return (
         <Group x={x} y={y} draggable onDragMove={onDragMove} onDragEnd={onDragEnd} onDblClick={onDblClick}>
             <Text
                 width={width}
-                text={text}
+                text={nombre}
                 fontSize={12}
                 fill="black"
                 offsetX={width / 2}
@@ -21,7 +21,7 @@ const Atributo = ({ x, y, text, onDragMove, onDragEnd, onDblClick }) => {
 };
 
 const calcularOffsetAtributo = (componente) => {
-    let width = (componente.text.length * 6.15) + 15;
+    let width = (componente.nombre.length * 6.15) + 15;
     let height = 24;
     return [
         { x: -(width / 2), y: 0 },

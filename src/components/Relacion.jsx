@@ -1,7 +1,7 @@
 import { Group, Rect, Text } from "react-konva";
 
-const Relacion = ({ x, y, text, onDragMove, onDragEnd, onDblClick }) => {
-    let width = (text.length * 6.15);
+const Relacion = ({ x, y, nombre, onDragMove, onDragEnd, onDblClick }) => {
+    let width = (nombre.length * 6.15);
     let cantLineas = (width - (width % 50)) / 50;
     cantLineas = width % 50 > 0 ? ++cantLineas : cantLineas;
     width = width < 50 ? width : 50;
@@ -15,11 +15,11 @@ const Relacion = ({ x, y, text, onDragMove, onDragEnd, onDblClick }) => {
                 offsetX={width / 2}
                 offsetY={width / 2}
                 stroke="#000000"
-                strokeWidth={2}
+                strokeWidth={1}
             />
             <Text
                 width={width}
-                text={text}
+                text={nombre}
                 fontSize={12}
                 fill="black"
                 offsetX={width / 2}
