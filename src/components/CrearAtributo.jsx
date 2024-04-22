@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { closeDialog } from '../redux/modalSlice';
-import { createElement } from '../redux/diagramSlice';
+import { createElement, manageElements } from '../redux/diagramSlice';
 
 const CrearAtributo = ({ isOpen, x, y, element }) => {
 
@@ -147,10 +147,10 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
         const { dueño, nombre, clavePrimaria, cardinalidad, esCompuesto } = formData;
         const { id, idc } = dueño;
         const { content } = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad);
-        const elementData = { x, y, nombre, clavePrimaria, ...content };
+        const values = { x, y, nombre, clavePrimaria, ...content };
         const type = esCompuesto ? "atributo compuesto" : "atributo";
-/*         dispatch(manageElements({ values, id: idEntidad, type }));
- */    }
+        dispatch(manageElements({ values, id, type, idc }));
+    }
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -189,12 +189,11 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
             dueño: dueño === "",
             cardinalidad: cardinalidad === "",
         };
-        setFormErrors(err);
         if (!formHasErrors(err)) {
             if (element === "") {
                 crearAtributo();
             } else {
-                editarEntidad();
+                editarAtributo();
             }
             /* const { id, idc } = dueño;
             const { content } = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad);
@@ -203,7 +202,7 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
             dispatch(createElement({ elementData, type, id, idc })); */
             resetForm();
         } else {
-
+            setFormErrors(err);
         }
     }
 

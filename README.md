@@ -3,8 +3,25 @@ Bienvenido al repositorio del proyecto BDDTool. Este proyecto de software fue cr
 
 ## Descripción
 
-
-
 ## Instalación
+
+Para usar esta aplicación siga estos pasos:
+
+Primero clonar el repositorio:
+
+   git clone https://github.com/maurobenitez/bddtool.git
+
+Navegar hacia el directorio del proyecto:
+
+   cd bddtool
+
+Instalar dependencias:
+
+   npm i
+
+Iniciar servidor de desarrollo:
+
+   npm start
+
 
 ## Contacto
