@@ -93,9 +93,16 @@ const Linea = ({ figuraA, figuraB, text }) => {
         return punto;
     }
 
+    const obtenerTexto = () => {
+        if ((figuraA.type === "atributo") && (text === "1..1"))
+            return "";
+        return text;
+    }
+
     const [line, lado] = calcularLinea()
     const nuevaLinea = calcularNuevaLinea(...line, lado);
     const punto = calcularPunto(line, nuevaLinea, lado);
+
     return (
         <>
             <Line
@@ -107,7 +114,8 @@ const Linea = ({ figuraA, figuraB, text }) => {
                 ((figuraA.type === "entidad") || (figuraA.type === "atributo")) &&
                 (
                     <Text
-                        text={text != "1..1" ? text : ""}
+                        //text={text != "1..1" ? text : ""}
+                        text={obtenerTexto()}
                         align="center"
                         verticalAlign="center"
                         fontSize={12}

@@ -2,29 +2,56 @@ import React, { useState, useEffect } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { closeDialog } from '../redux/modalSlice';
-import { createElement } from '../redux/diagramSlice';
+import { createElement, manageElements } from '../redux/diagramSlice';
 
-const CrearRelacion = ({ isOpen, x, y }) => {
+const CrearRelacion = ({ isOpen, x, y, element }) => {
 
     const entidades = useSelector((state) => state.diagram.entidades);
+
+    const relaciones = useSelector((state) => state.diagram.relaciones);
 
     const dispatch = useDispatch();
 
     const [formData, setFormData] = useState({
         nombre: "",
-        entidad1: "",
-        entidad2: "",
+        idEntidad1: "",
+        idEntidad2: "",
         cardinalidad1: "",
         cardinalidad2: "",
     });
 
     const [formErrors, setFormErrors] = useState({
         nombre: false,
-        entidad1: false,
-        entidad2: false,
+        idEntidad1: false,
+        idEntidad2: false,
         cardinalidad1: false,
         cardinalidad2: false,
     });
+
+    const [relacion, setRelacion] = useState("");
+
+    const obtenerCardinalidad = (minima, maxima) => {
+        if (minima === undefined || maxima === undefined)
+            return "1..1";
+        return minima + ".." + maxima;
+    }
+
+    const asignarElemento = () => {
+        if (element !== "") {
+            const relacion = relaciones.find(relacion => relacion.id === element.id);
+            setRelacion(relacion);
+            const data = {
+                nombre: relacion.nombre,
+                idEntidad1: relacion.entidades[0].id,
+                idEntidad2: relacion.entidades[1].id,
+                cardinalidad1: obtenerCardinalidad(relacion.entidades[0].cardinalidadMinima, relacion.entidades[0].cardinalidadMaxima),
+                cardinalidad2: obtenerCardinalidad(relacion.entidades[1].cardinalidadMinima, relacion.entidades[1].cardinalidadMaxima),
+            }
+            setFormData(data);
+        }
+    }
+
+    useEffect(asignarElemento, [isOpen]);
 
     const opcionesCardinalidad = [
         {
@@ -83,18 +110,40 @@ const CrearRelacion = ({ isOpen, x, y }) => {
         return hasErrors;
     }
 
+    const crearRelacion = () => {
+        const { nombre, idEntidad1, idEntidad2, cardinalidad1, cardinalidad2 } = formData;
+        const contentEntidad1 = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad1).content;
+        const contentEntidad2 = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad2).content;
+        const entidad1 = { ...contentEntidad1, id: idEntidad1 };
+        const entidad2 = { ...contentEntidad2, id: idEntidad2 };
+        const entidades = [entidad1, entidad2];
+        const elementData = { x, y, nombre, entidades };
+        dispatch(createElement({ elementData, type: "relacion" }));
+    }
+
+    const editarRelacion = () => {
+        const { nombre, idEntidad1, idEntidad2, cardinalidad1, cardinalidad2 } = formData;
+        const contentEntidad1 = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad1).content;
+        const contentEntidad2 = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad2).content;
+        const entidad1 = { ...contentEntidad1, id: idEntidad1 };
+        const entidad2 = { ...contentEntidad2, id: idEntidad2 };
+        const entidades = [entidad1, entidad2];
+        const values = { nombre, entidades };
+        dispatch(manageElements({ values, type: "relacion", id: relacion.id }));
+    }
+
     const resetForm = () => {
         setFormData({
             nombre: "",
-            entidad1: "",
-            entidad2: "",
+            idEntidad1: "",
+            idEntidad2: "",
             cardinalidad1: "",
             cardinalidad2: "",
         });
         setFormErrors({
             nombre: false,
-            entidad1: false,
-            entidad2: false,
+            idEntidad1: false,
+            idEntidad2: false,
             cardinalidad1: false,
             cardinalidad2: false,
         });
@@ -102,55 +151,53 @@ const CrearRelacion = ({ isOpen, x, y }) => {
         dispatch(closeDialog());
     }
 
+    const handleDropdownChange = (event) => {
+        const { name, value } = event.target;
+        setFormData({ ...formData, [name]: value });
+        setFormErrors({ ...formErrors, [name]: false });
+    };
+
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         setFormData({ ...formData, [name]: value });
         setFormErrors({ ...formErrors, [name]: false });
     };
 
-    const handleDropdownChange = (event) => {
-        const { name, value } = event.target;
-        setFormData({ ...formData, [name]: value });
-        setFormErrors({ ...formErrors, [name]: false });
-
-    };
-
     function handleSubmit(e) {
         e.preventDefault();
-        const { nombre, entidad1, entidad2, cardinalidad1, cardinalidad2 } = formData;
+        const { nombre, idEntidad1, idEntidad2, cardinalidad1, cardinalidad2 } = formData;
         const err = {
             ...formErrors,
             nombre: nombre.trim() === '',
-            entidad1: entidad1 === '',
-            entidad2: entidad2 === '',
+            idEntidad1: idEntidad1 === '',
+            idEntidad2: idEntidad2 === '',
             cardinalidad1: cardinalidad1 === '',
             cardinalidad2: cardinalidad2 === '',
         };
-        setFormErrors(err);
+
         if (!formHasErrors(err)) {
-
-            const contentEntidad1 = opcionesCardinalidad[formData.cardinalidad1].content;
-            const contentEntidad2 = opcionesCardinalidad[formData.cardinalidad2].content;
-            const entidad1 = { ...contentEntidad1, id: formData.entidad1 };
-            const entidad2 = { ...contentEntidad2, id: formData.entidad2 };
-            const entidades = [entidad1, entidad2];
-            const { nombre } = formData;
-            const elementData = { x, y, nombre, entidades };
-            dispatch(createElement({ elementData, type: "relacion" }));
+            if (element === "") {
+                crearRelacion();
+            } else {
+                editarRelacion();
+            }
             resetForm();
-
+        } else {
+            setFormErrors(err);
         }
     }
 
     return (
         <>
             <dialog id="crearRelacion" className="modal" onClose={resetForm}>
-                <h1>Añadir relación</h1>
+                <h1>
+                    {element === "" ? "Crear relación" : "Editar relación"}
+                </h1>
                 <form method="post" onSubmit={handleSubmit} id="crearRelacionForm">
                     <label>
                         Nombre:
                     </label>
-                    <input name="nombre" onChange={handleInputChange} />
+                    <input name="nombre" onChange={handleInputChange} value={formData.nombre} />
                     <br />
                     {formErrors.nombre &&
                         <>
@@ -162,14 +209,14 @@ const CrearRelacion = ({ isOpen, x, y }) => {
                         entidad 1:
                     </label>
 
-                    <select name="entidad1" value={formData.entidad1} onChange={handleDropdownChange}>
+                    <select name="idEntidad1" value={formData.idEntidad1} onChange={handleDropdownChange}>
                         <option value="">Seleccione entidad...</option>
                         {entidades.map((entidad, index) =>
                             <option value={entidad.id} key={"cre1-" + index}>{entidad.nombre}</option>
                         )}
                     </select>
                     <br />
-                    {formErrors.entidad1 &&
+                    {formErrors.idEntidad1 &&
                         <>
                             <span className="error-message">Seleccione la entidad.</span>
                             <br />
@@ -181,7 +228,7 @@ const CrearRelacion = ({ isOpen, x, y }) => {
                     <select name="cardinalidad1" value={formData.cardinalidad1} onChange={handleDropdownChange}>
                         <option value="">Seleccione cardinalidad...</option>
                         {opcionesCardinalidad.map((opcionCardinalidad, index) =>
-                            <option value={index} key={"crc1-" + index}>{opcionCardinalidad.text}</option>
+                            <option value={opcionCardinalidad.text} key={"crc1-" + index}>{opcionCardinalidad.text}</option>
                         )}
                     </select>
                     <br />
@@ -194,14 +241,14 @@ const CrearRelacion = ({ isOpen, x, y }) => {
                     <label>
                         Entidad 2:
                     </label>
-                    <select name="entidad2" value={formData.entidad2} onChange={handleDropdownChange}>
+                    <select name="idEntidad2" value={formData.idEntidad2} onChange={handleDropdownChange}>
                         <option value="">Seleccione entidad...</option>
                         {entidades.map((entidad, index) =>
                             <option value={entidad.id} key={"cre2-" + index}>{entidad.nombre}</option>
                         )}
                     </select>
                     <br />
-                    {formErrors.entidad2 &&
+                    {formErrors.idEntidad2 &&
                         <>
                             <span className="error-message">Seleccione la entidad.</span>
                             <br />
@@ -213,7 +260,7 @@ const CrearRelacion = ({ isOpen, x, y }) => {
                     <select name="cardinalidad2" value={formData.cardinalidad2} onChange={handleDropdownChange}>
                         <option value="">Seleccione cardinalidad...</option>
                         {opcionesCardinalidad.map((opcionCardinalidad, index) =>
-                            <option value={index} key={"crc2-" + index}>{opcionCardinalidad.text}</option>
+                            <option value={opcionCardinalidad.text} key={"crc2-" + index}>{opcionCardinalidad.text}</option>
                         )}
                     </select>
 
@@ -225,7 +272,7 @@ const CrearRelacion = ({ isOpen, x, y }) => {
                         </>
                     }
                     <button type="submit" id="closeModal" className="modal-close-btn">
-                        Crear relacion
+                        {element === "" ? "Crear relación" : "Editar relación"}
                     </button>
                 </form>
             </dialog>

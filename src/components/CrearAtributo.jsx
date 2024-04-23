@@ -48,6 +48,12 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
         },
     ]
 
+    const obtenerCardinalidad = (minima, maxima) => {
+        if (minima === undefined || maxima === undefined)
+            return "1..1";
+        return minima + ".." + maxima;
+    }
+
     const asignarElemento = () => {
         if (element !== "") {
             const entidad = entidades.find(entidad => entidad.id === element.id);
@@ -55,10 +61,10 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
             setAtributo(atributo);
             const data = {
                 nombre: atributo.nombre,
-                dueño: entidad.id,
+                dueño: { id: entidad.id, idc: element.idc },
                 clavePrimaria: atributo.clavePrimaria,
-                cardinalidad: atributo.cardinalidad,
-                esCompuesto: atributo.type === "atributo"
+                cardinalidad: obtenerCardinalidad(atributo.cardinalidadMinima, atributo.cardinalidadMaxima),
+                esCompuesto: atributo.type === "atributo compuesto"
             }
             setFormData(data);
         }
@@ -147,9 +153,10 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
         const { dueño, nombre, clavePrimaria, cardinalidad, esCompuesto } = formData;
         const { id, idc } = dueño;
         const { content } = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad);
-        const values = { x, y, nombre, clavePrimaria, ...content };
+        const values = { nombre, clavePrimaria, ...content };
         const type = esCompuesto ? "atributo compuesto" : "atributo";
-        dispatch(manageElements({ values, id, type, idc }));
+        console.log("idc: ", idc);
+        dispatch(manageElements({ values, id, type, idc, idAttribute: atributo.id }));
     }
 
     const handleInputChange = (event) => {
@@ -182,7 +189,7 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
 
     function handleSubmit(e) {
         e.preventDefault();
-        const { dueño, nombre, clavePrimaria, cardinalidad, esCompuesto } = formData;
+        const { dueño, nombre, cardinalidad } = formData;
         const err = {
             ...formErrors,
             nombre: nombre.trim() === "",
@@ -195,11 +202,6 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
             } else {
                 editarAtributo();
             }
-            /* const { id, idc } = dueño;
-            const { content } = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad);
-            const elementData = { x, y, nombre, clavePrimaria, ...content };
-            const type = esCompuesto ? "atributo compuesto" : "atributo";
-            dispatch(createElement({ elementData, type, id, idc })); */
             resetForm();
         } else {
             setFormErrors(err);
@@ -209,7 +211,9 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
     return (
         <>
             <dialog id="crearAtributo" className="modal" onClose={resetForm}>
-                <h1>Añadir atributo</h1>
+                <h1>
+                    {element === "" ? "Crear atributo" : "Editar atributo"}
+                </h1>
                 <form method="post" id="crearAtributoForm" onSubmit={handleSubmit}>
                     <label>
                         Nombre:
@@ -222,37 +226,42 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
                             <br />
                         </>
                     }
-                    <input type="radio" id="simple" name="tipo" value="simple" onChange={handleOptionChange} checked={formData.esCompuesto === false} />
-                    <label htmlFor="simple">Simple</label>
-                    <input type="radio" id="compuesto" name="tipo" value="compuesto" onChange={handleOptionChange} checked={formData.esCompuesto === true} />
-                    <label htmlFor="compuesto">Compuesto</label><br />
-                    <label>
-                        Dueño:
-                    </label>
-                    <select name="dueño" value={formData.entidad} onChange={handleDropdownChange}>
-                        <option value="">Seleccione dueño...</option>
-                        <optgroup label="Entidades">
-                            {entidades.map((entidad, index) =>
-                                <option value={JSON.stringify({ id: entidad.id, idc: -1 })} key={"ce-" + index + "-" + entidad}>{entidad.nombre}</option>
-                            )}
-                        </optgroup>
-                        {/*  <optgroup label="Relaciones">
-                            {relaciones.map((relacion, index) =>
-                                <option value={JSON.stringify({ id: entidad.id, idc: -1 })} key={"ce-" + index + "-" + entidad}>{entidad.nombre}</option>
-                            )}
-                        </optgroup> */}
-                        <optgroup label="Atributos compuestos">
-                            {getAtributosCompuestos().map((atributoCompuesto, index) =>
-                                <option value={JSON.stringify({ id: atributoCompuesto.entidad, idc: atributoCompuesto.id })} key={"cac-" + index + "-" + atributoCompuesto}>{atributoCompuesto.nombre}</option>
-                            )}
-                        </optgroup>
-
-                    </select>
-                    <br />
-                    {formErrors.dueño &&
+                    {
+                        element === "" &&
                         <>
-                            <span className="error-message">Seleccione dueño.</span>
+                            <input type="radio" id="simple" name="tipo" value="simple" onChange={handleOptionChange} checked={formData.esCompuesto === false} />
+                            <label htmlFor="simple">Simple</label>
+                            <input type="radio" id="compuesto" name="tipo" value="compuesto" onChange={handleOptionChange} checked={formData.esCompuesto === true} />
+                            <label htmlFor="compuesto">Compuesto</label><br />
+                            <label>
+                                Dueño:
+                            </label>
+                            <select name="dueño" value={formData.entidad} onChange={handleDropdownChange}>
+                                <option value="">Seleccione dueño...</option>
+                                <optgroup label="Entidades">
+                                    {entidades.map((entidad, index) =>
+                                        <option value={JSON.stringify({ id: entidad.id, idc: -1 })} key={"ce-" + index + "-" + entidad}>{entidad.nombre}</option>
+                                    )}
+                                </optgroup>
+                                {/*  <optgroup label="Relaciones">
+                                    {relaciones.map((relacion, index) =>
+                                    <option value={JSON.stringify({ id: entidad.id, idc: -1 })} key={"ce-" + index + "-" + entidad}>{entidad.nombre}</option>
+                                )}
+                                </optgroup> */}
+                                <optgroup label="Atributos compuestos">
+                                    {getAtributosCompuestos().map((atributoCompuesto, index) =>
+                                        <option value={JSON.stringify({ id: atributoCompuesto.entidad, idc: atributoCompuesto.id })} key={"cac-" + index + "-" + atributoCompuesto}>{atributoCompuesto.nombre}</option>
+                                    )}
+                                </optgroup>
+
+                            </select>
                             <br />
+                            {formErrors.dueño &&
+                                <>
+                                    <span className="error-message">Seleccione dueño.</span>
+                                    <br />
+                                </>
+                            }
                         </>
                     }
                     <label>
@@ -261,7 +270,9 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
                     <select name="cardinalidad" value={formData.cardinalidad} onChange={handleDropdownChange}>
                         <option value="">Seleccione cardinalidad...</option>
                         {opcionesCardinalidad.map((opcionCardinalidad, index) =>
-                            <option value={opcionCardinalidad.text} key={"caoc-" + index}>{opcionCardinalidad.text}</option>
+                            <option value={opcionCardinalidad.text} key={"caoc-" + index} selected={opcionCardinalidad.text === formData.cardinalidad}>
+                                {opcionCardinalidad.text}
+                            </option>
                         )}
                     </select>
                     <br />
@@ -273,13 +284,13 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
                     }
                     {!formData.esCompuesto &&
                         <>
-                            <input type="checkbox" id="clavePrimaria" name="clavePrimaria" onChange={handleCheckboxChange} />
+                            <input type="checkbox" id="clavePrimaria" name="clavePrimaria" onChange={handleCheckboxChange} checked={formData.clavePrimaria} />
                             <label htmlFor="clavePrimaria"> Es clave primaria</label>
                             <br />
                         </>
                     }
                     <button type="submit" id="closeModal" className="modal-close-btn">
-                        Crear atributo
+                        {element === "" ? "Crear atributo" : "Editar atributo"}
                     </button>
                 </form>
             </dialog>

@@ -4,13 +4,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import { closeDialog } from '../redux/modalSlice';
 import { manageElements } from '../redux/diagramSlice';
 
-const CrearJerarquía = ({ isOpen, x, y }) => {
+const CrearJerarquía = ({ isOpen, x, y, element }) => {
 
     const entidades = useSelector((state) => state.diagram.entidades);
 
     const dispatch = useDispatch();
 
+    const [entidadPadre, setEntidadPadre] = useState("");
+
     const [formData, setFormData] = useState({
+        nombre: "",
         entidadPadre: "",
         cobertura: ""
     });
@@ -19,11 +22,37 @@ const CrearJerarquía = ({ isOpen, x, y }) => {
         entidadPadre: false,
         cobertura: false,
     });
+
     const [selectedOptions, setSelectedOptions] = useState([]);
 
     const [options, setOptions] = useState([]);
 
     const opcionesCobertura = ["T,E", "T,S", "P,E", "P,S"];
+
+    const asignarElemento = () => {
+        if (element !== "") {
+            const entidad = entidades.find(entidad => entidad.id === element.id);
+            setEntidadPadre(entidadPadre);
+            const data = {
+                nombre: entidad.nombre,
+                cobertura: entidad.cobertura,
+                entidadPadre: entidad.id
+            }
+            const entidadesHijo = [];
+            entidad.hijos.forEach(idHijo => {
+                let entidadHijo = entidades.find(entidad => entidad.id === idHijo);
+                let selectedOption = {
+                    value: idHijo,
+                    label: entidadHijo.nombre
+                }
+                entidadesHijo.push(selectedOption);
+            });
+            setSelectedOptions(entidadesHijo);
+            setFormData(data);
+        }
+    }
+
+    useEffect(asignarElemento, [isOpen]);
 
     const toggleDialog = () => {
         var dialog = document.getElementById("CrearJerarquía");
@@ -47,6 +76,58 @@ const CrearJerarquía = ({ isOpen, x, y }) => {
     }
 
     useEffect(cargarEntidades, [isOpen]);
+
+    const crearJerarquía = () => {
+        const { entidadPadre, cobertura } = formData;
+        const values = {
+            subType: "padre",
+            cobertura,
+            hijos: []
+        }
+        selectedOptions.forEach(option => {
+            values.hijos.push(option.value);
+            let subValues = { subType: "hijo" };
+            dispatch(manageElements({ values: subValues, type: "entidad", id: option.value }));
+        })
+        dispatch(manageElements({ values, type: "entidad", id: entidadPadre }));
+    }
+
+    const esHijo = (entidad, hijos) => {
+        var esHijo = false;
+        hijos.forEach(idHijo => {
+            if (entidad.id === idHijo)
+                esHijo = true;
+        })
+        return esHijo;
+    }
+
+    const editarJerarquía = () => {
+        const { entidadPadre, cobertura, nombre } = formData;
+        const values = {
+            cobertura,
+            nombre,
+            hijos: []
+        }
+        /* selectedOptions.forEach(option => {
+            values.hijos.push(option.value);
+            let subValues = { subType: "hijo" };
+            dispatch(manageElements({ values: subValues, type: "entidad", id: option.value }));
+        }) */
+        selectedOptions.forEach(option => {
+            values.hijos.push(option.value);
+        });
+        entidades.forEach(entidad => {
+            let subValues = { subType: "" };
+            if (esHijo(entidad, values.hijos)) {
+                subValues = { subType: "hijo" };
+            }
+            if (entidad.subType === "padre") {
+                subValues = { subType: "padre" };
+            }
+            dispatch(manageElements({ values: subValues, type: "entidad", id: entidad.id }));
+        })
+        dispatch(manageElements({ values, type: "entidad", id: entidadPadre }));
+    }
 
     const formHasErrors = (err) => {
         var hasErrors = false;
@@ -76,6 +157,12 @@ const CrearJerarquía = ({ isOpen, x, y }) => {
         setFormErrors({ ...formErrors, [name]: false });
     };
 
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setFormData({ ...formData, [name]: value });
+        setFormErrors({ ...formErrors, [name]: false });
+    };
+
     function handleSubmit(e) {
         e.preventDefault();
         const { entidadPadre, cobertura } = formData;
@@ -84,51 +171,68 @@ const CrearJerarquía = ({ isOpen, x, y }) => {
             entidadPadre: entidadPadre === '',
             cobertura: cobertura === "",
         };
-        setFormErrors(err);
         if (!formHasErrors(err)) {
-            const values = {
-                subType: "padre",
-                cobertura: cobertura,
-                hijos: []
+            if (element === "") {
+                crearJerarquía();
+            } else {
+                editarJerarquía();
             }
-            selectedOptions.forEach(option => {
-                values.hijos.push(option.value);
-                let subValues = { subType: "hijo" };
-                dispatch(manageElements({ values: subValues, type: "entidad", id: option.value }));
-            })
-            dispatch(manageElements({ values, type: "entidad", id: entidadPadre }));
             resetForm();
+        } else {
+            setFormErrors(err);
         }
     }
 
     return (
         <>
             <dialog id="CrearJerarquía" className="modal" onClose={resetForm}>
-                <h1>Añadir Jerarquía</h1>
+                <h1>
+                    {element === "" ? "Añadir jerarquía" : "Editar jerarquía"}
+                </h1>
                 <form method="post" id="CrearJerarquíaForm" onSubmit={handleSubmit}>
-                    <label>
-                        Entidad padre:
-                    </label>
-                    <select name="entidadPadre" value={formData.entidadPadre} onChange={handleDropdownChange}>
-                        <option value="">Seleccione entidad...</option>
-                        {entidades.map((entidad, index) =>
-                            <option value={entidad.id} key={"cjep-" + index + "-" + entidad}>{entidad.nombre}</option>
-                        )}
-                    </select>
-                    <br />
-                    {formErrors.entidadPadre &&
-                        <>
-                            <span className="error-message">Seleccione entidad padre.</span>
-                            <br />
-                        </>
+                    {
+                        element === "" ?
+                            <>
+                                <label>
+                                    Entidad padre:
+                                </label>
+                                <select name="entidadPadre" value={formData.entidadPadre} onChange={handleDropdownChange}>
+                                    <option value="">Seleccione entidad...</option>
+                                    {entidades.map((entidad, index) =>
+                                        <option value={entidad.id} key={"cjep-" + index + "-" + entidad}>{entidad.nombre}</option>
+                                    )}
+                                </select>
+                                <br />
+                                {formErrors.entidadPadre &&
+                                    <>
+                                        <span className="error-message">Seleccione entidad padre.</span>
+                                        <br />
+                                    </>
+                                }
+                            </>
+                            :
+                            <>
+                                <label>
+                                    Nombre:
+                                </label>
+                                <input name="nombre" onChange={handleInputChange} value={formData.nombre} />
+                                <br />
+                                {formErrors.nombre &&
+                                    <>
+                                        <span className="error-message">El nombre de la entidad es requerido.</span>
+                                        <br />
+                                    </>
+                                }
+                            </>
                     }
+
                     <label>
                         cobertura:
                     </label>
                     <select name="cobertura" value={formData.cobertura} onChange={handleDropdownChange}>
                         <option value="">Seleccione cobertura...</option>
                         {opcionesCobertura.map((opcionCobertura, index) =>
-                            <option value={opcionCobertura} key={"caoc-" + opcionCobertura}>{opcionCobertura}</option>
+                            <option value={opcionCobertura} key={"caoc-" + opcionCobertura}>{opcionCobertura} </option>
                         )}
                     </select>
                     <br />
@@ -138,6 +242,7 @@ const CrearJerarquía = ({ isOpen, x, y }) => {
                             <br />
                         </>
                     }
+                    {/* #select */}
                     <Select
                         defaultValue={selectedOptions}
                         onChange={setSelectedOptions}
@@ -148,7 +253,7 @@ const CrearJerarquía = ({ isOpen, x, y }) => {
                     />
                     <br />
                     <button type="submit" id="closeModal" className="modal-close-btn">
-                        Crear Jerarquía
+                        {element === "" ? "Añadir jerarquía" : "Editar jerarquía"}
                     </button>
                 </form>
             </dialog>

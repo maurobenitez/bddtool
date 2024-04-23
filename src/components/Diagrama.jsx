@@ -189,7 +189,7 @@ const Diagrama = ({ cb, modo }) => {
                 ))}
                 {/* renderizar entidades */}
                 {entidades.map((entidad) =>
-                    (entidad.subType !== "hijo") &&
+                    ((entidad.subType !== "hijo") && (entidad.subType !== "padre")) &&
                     <Entidad
                         key={"e" + entidad.id}
                         x={entidad.x}
@@ -198,6 +198,19 @@ const Diagrama = ({ cb, modo }) => {
                         onDragMove={(e) => handleDragMove(e, entidad.id, "entidad")}
                         onDragEnd={(e) => handleDragMove(e, entidad.id, "entidad")}
                         onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", entidad.nombre)}
+                    />
+                )}
+                {/* renderizar entidades padre */}
+                {entidades.map((entidad) =>
+                    (entidad.subType === "padre") &&
+                    <Entidad
+                        key={"e" + entidad.id}
+                        x={entidad.x}
+                        y={entidad.y}
+                        nombre={entidad.nombre}
+                        onDragMove={(e) => handleDragMove(e, entidad.id, "entidad")}
+                        onDragEnd={(e) => handleDragMove(e, entidad.id, "entidad")}
+                        onDblClick={(e) => handleDblClick(e, entidad.id, "jerarquía", entidad.nombre)}
                     />
                 )}
                 {/* renderizar entidades hijo de jerarquías */}
@@ -232,7 +245,7 @@ const Diagrama = ({ cb, modo }) => {
                                 nombre={atributo.nombre}
                                 onDragMove={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
                                 onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
-                                onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", entidad.nombre, atributo.id)}
+                                onDblClick={(e) => handleDblClick(e, entidad.id, "atributo", entidad.nombre, atributo.id)}
                             />
                         ))
                     )
@@ -299,6 +312,7 @@ const Diagrama = ({ cb, modo }) => {
                             nombre={relacion.nombre}
                             onDragMove={(e) => handleDragMove(e, relacion.id, "relacion")}
                             onDragEnd={(e) => handleDragMove(e, relacion.id, "relacion")}
+                            onDblClick={(e) => handleDblClick(e, relacion.id, "relacion", relacion.nombre)}
                         />
                     ))
                 }

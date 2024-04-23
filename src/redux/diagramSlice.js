@@ -239,7 +239,6 @@ export const diagramSlice = createSlice({
                     elemento = elementos.find((atributo) => atributo.id === idAttribute);
                 } else {
                     let atributosCompuestos = entidad["atributosCompuestos"];
-
                     let atributoCompuesto = atributosCompuestos.find((atributo) => atributo.id === idc);
                     elementos = atributoCompuesto["atributos"];
                     elemento = elementos.find((atributo) => atributo.id === idAttribute);
@@ -309,9 +308,24 @@ export const diagramSlice = createSlice({
             const idElement = uuidv4();
             const elemento = { ...elementData, id: idElement, type };
             elementos.push(elemento);
+        },
+        deleteHierarchy: (state, action) => {
+            const { id } = action.payload;
+            var entidades = state["entidades"];
+            var entidadPadre = entidades.find(entidad => entidad.id === id);
+            entidadPadre.subType = "";
+           /*  entidades.forEach(entidad => {
+                let subType = "";
+                entidadPadre.hijos.forEach(idEntidad => {
+                    if (entidad.id === idEntidad) subType = "hijo";
+                })
+                entidad.subType = subType;
+            }) */
+            entidadPadre.hijos = [];
+            entidadPadre.cobertura = "";
         }
     }
 })
 
-export const { manageElements, createElement } = diagramSlice.actions;
+export const { manageElements, createElement, deleteHierarchy } = diagramSlice.actions;
 export default diagramSlice.reducer;

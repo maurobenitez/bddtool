@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { manageElements } from '../redux/diagramSlice';
+import { manageElements, deleteHierarchy } from '../redux/diagramSlice';
 import { useDispatch } from 'react-redux';
 import { openDialog, closeEditOrDelete } from '../redux/modalSlice';
 
@@ -23,8 +23,12 @@ const EditarOBorrarElemento = ({ isOpen, element }) => {
     }
 
     const borrarElemento = () => {
-        const elementoABorrar = { ...element, operation: "borrar" };
-        dispatch(manageElements(elementoABorrar));
+        if (element.type !== "jerarquía") {
+            const elementoABorrar = { ...element, operation: "borrar" };
+            dispatch(manageElements(elementoABorrar));
+        } else {
+            dispatch(deleteHierarchy({ id: element.id }));
+        }
     }
 
     const handleClickBorrar = (e) => {
@@ -36,6 +40,7 @@ const EditarOBorrarElemento = ({ isOpen, element }) => {
         dispatch(openDialog({ dialogType: element.type, element }));
         dispatch(closeEditOrDelete());
     }
+
     return (
         <>
             <dialog id="editarOBorrarElemento" className="modal" onClose={handleOnClose}>

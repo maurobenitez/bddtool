@@ -26,9 +26,9 @@ const App = () => {
       <BarraLateral cb={cbfunction} modo={mode} />
       <Diagrama cb={cbfunction} modo={mode} />
       <CrearEntidad isOpen={modalType === "entidad"} x={coordinate.x} y={coordinate.y} element={element} />
-      <CrearRelacion isOpen={modalType === "relacion"} x={coordinate.x} y={coordinate.y} />
+      <CrearRelacion isOpen={modalType === "relacion"} x={coordinate.x} y={coordinate.y} element={element} />
       <CrearAtributo isOpen={modalType === "atributo"} x={coordinate.x} y={coordinate.y} element={element} />
-      <CrearJerarquía isOpen={modalType === "jerarquía"} x={coordinate.x} y={coordinate.y} />
+      <CrearJerarquía isOpen={modalType === "jerarquía"} x={coordinate.x} y={coordinate.y} element={element} />
       <EditarOBorrarElemento isOpen={editOrDeleteOpen} element={elementEditOrDelete} />
     </div>
   );
