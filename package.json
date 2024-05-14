@@ -2,13 +2,15 @@
   "name": "bddtool",
   "version": "0.1.0",
   "private": true,
-  "main": "public/main.js",
+  "main": "public/electron.js",
+  "homepage": "./",
   "dependencies": {
     "@reduxjs/toolkit": "^2.1.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "electron": "^26.2.1",
+    "concurrently": "^8.2.2",
+    "electron-is-dev": "^3.0.1",
     "konva": "^9.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -16,15 +18,36 @@
     "react-redux": "^9.1.0",
     "react-scripts": "5.0.1",
     "react-select": "^5.8.0",
+    "redux-devtools-extension": "^2.13.9",
     "uuid": "^9.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "yarn": "^1.22.22"
+  },
+  "build": {
+    "productName": "bddtool",
+    "appId": "com.mauro.bddtool",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "win": {
+      "target": "nsis"
+    }
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron-dev": "electron ."
+    "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron-pack": "build --em.main=build/electron.js",
+    "preelectron-pack": "yarn build"
   },
   "eslintConfig": {
     "extends": [
@@ -43,5 +66,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "electron": "^26.2.1",
+    "electron-builder": "^24.13.3"
   }
 }

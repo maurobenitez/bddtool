@@ -96,22 +96,41 @@ const Diagrama = ({ cb, modo }) => {
             ajustarEntidadesHijo(entidadPadre);
         })
     };
+    const tieneIdentificadorCompuesto = (entidad) => {
+        const { atributos } = entidad;
+        var cantidadClaves = 0;
+        atributos.forEach(atributo => {
+            if (atributo.clavePrimaria === true)
+                cantidadClaves = cantidadClaves + 1;
+        })
+        if (cantidadClaves > 1) return true;
+        return false;
+    }
 
     const crearEnlaces = () => {
         const e = [];
         //crea enlaces entre atributos y entidades
         entidades.forEach(entidad => {
             entidad.atributos && entidad.atributos.forEach(atributo => {
-                e.push(crearEnlace(atributo, entidad));
+                if (atributo.type !== "externo")
+                    e.push(crearEnlace(atributo, entidad));
+            });
+        });
+        //crea enlaces entre atributos y relaciones
+        relaciones.forEach(relacion => {
+            relacion.atributos && relacion.atributos.forEach(atributo => {
+                e.push(crearEnlace(atributo, relacion));
             });
         });
         //crea enlaces entre identificadores compuestos y entidades
         entidades.forEach(entidad => {
-            if (entidad.identificadorCompuesto) {
-                entidad.identificadorCompuesto.forEach(atributo => {
-                    if (atributo.type !== "externo")
-                        e.push(crearEnlace(atributo, entidad));
-                });
+            if (tieneIdentificadorCompuesto(entidad)) {
+                if (entidad.atributos) {
+                    entidad.atributos.forEach(atributo => {
+                        if (atributo.clavePrimaria === true)
+                            e.push(crearEnlace(atributo, entidad));
+                    });
+                }
             }
         });
         //crea enlaces entre relaciones y entidades
@@ -139,7 +158,7 @@ const Diagrama = ({ cb, modo }) => {
     useEffect(crearEnlaces, [entidades, relaciones]);
     useEffect(ajustarTodasEntidadesHijo, [entidades, relaciones]);
 
-    const handleDragMove = (e, id, type, idAttribute = -1, idc = -1) => {
+    const handleDragMove = (e, id, type, idAttribute = "-1", idc = "-1", esRelacion = undefined) => {
         dispatch(
             manageElements({
                 id,
@@ -149,7 +168,8 @@ const Diagrama = ({ cb, modo }) => {
                     y: e.target.y(),
                 },
                 idAttribute,
-                idc
+                idc,
+                esRelacion
             })
         )
         crearEnlaces();
@@ -170,11 +190,10 @@ const Diagrama = ({ cb, modo }) => {
         cb("normal");
     }
 
-    const handleDblClick = (e, idEntidad, tipo, nombre, idAttribute = -1, idc = -1) => {
-        const element = { id: idEntidad, type: tipo, nombre, idAttribute, idc };
+    const handleDblClick = (e, idEntidad, tipo, dialogType, nombre, idAttribute = "-1", idc = "-1", esRelacion) => {
+        const element = { id: idEntidad, type: tipo, dialogType, nombre, idAttribute, idc, esRelacion };
         dispatch(openEditOrDelete({ element }));
     }
-
     return (
         <Stage width={window.innerWidth} height={window.innerHeight} onClick={handleClick} ref={stageRef}>
             <Layer>
@@ -197,7 +216,7 @@ const Diagrama = ({ cb, modo }) => {
                         nombre={entidad.nombre}
                         onDragMove={(e) => handleDragMove(e, entidad.id, "entidad")}
                         onDragEnd={(e) => handleDragMove(e, entidad.id, "entidad")}
-                        onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", entidad.nombre)}
+                        onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", "entidad", entidad.nombre)}
                     />
                 )}
                 {/* renderizar entidades padre */}
@@ -210,7 +229,7 @@ const Diagrama = ({ cb, modo }) => {
                         nombre={entidad.nombre}
                         onDragMove={(e) => handleDragMove(e, entidad.id, "entidad")}
                         onDragEnd={(e) => handleDragMove(e, entidad.id, "entidad")}
-                        onDblClick={(e) => handleDblClick(e, entidad.id, "jerarquía", entidad.nombre)}
+                        onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", "jerarquía", entidad.nombre)}
                     />
                 )}
                 {/* renderizar entidades hijo de jerarquías */}
@@ -222,6 +241,8 @@ const Diagrama = ({ cb, modo }) => {
                         y={entidad.y}
                         nombre={entidad.nombre}
                         draggable={false}
+                        onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", "entidad", entidad.nombre)}
+
                     />
 
                 )}
@@ -234,42 +255,66 @@ const Diagrama = ({ cb, modo }) => {
                     />
 
                 )}
-                {/* renderizar atributos */}
+                {/* renderizar atributos de entidades */}
                 {
                     entidades.map((entidad) =>
                         entidad.atributos && entidad.atributos.map((atributo) => (
+                            (atributo.type !== "externo") && (
+                                <Atributo
+                                    key={entidad.id + "-" + atributo.id}
+                                    x={atributo.x}
+                                    y={atributo.y}
+                                    nombre={atributo.nombre}
+                                    onDragMove={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
+                                    onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
+                                    onDblClick={(e) => handleDblClick(e, entidad.id, "atributo", "atributo", atributo.nombre, atributo.id)}
+                                />
+                            )
+                        ))
+                    )
+                }
+                {/* renderizar atributos de relaciones */}
+                {
+                    relaciones.map((relacion) =>
+                        relacion.atributos && relacion.atributos.map((atributo) => (
                             <Atributo
-                                key={entidad.id + "-" + atributo.id}
+                                key={relacion.id + "-" + atributo.id}
                                 x={atributo.x}
                                 y={atributo.y}
                                 nombre={atributo.nombre}
-                                onDragMove={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
-                                onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
-                                onDblClick={(e) => handleDblClick(e, entidad.id, "atributo", entidad.nombre, atributo.id)}
+                                onDragMove={(e) => handleDragMove(e, relacion.id, "atributo", atributo.id, "-1", "-1", true)}
+                                onDragEnd={(e) => handleDragMove(e, relacion.id, "atributo", atributo.id, "-1", "-1", true)}
+                                onDblClick={(e) => handleDblClick(e, relacion.id, "atributo", "atributo", atributo.nombre, atributo.id, "-1", "-1", true)}
                             />
                         ))
                     )
                 }
                 {/* renderizar atributos de identificador compuesto */}
-                {
+                {/* {
                     entidades.map((entidad) =>
-                        entidad.identificadorCompuesto && entidad.identificadorCompuesto.map((atributo) => (
-                            atributo.type !== "externo" &&
+                        tieneIdentificadorCompuesto(entidad) && entidad.atributos.map((atributo) => (
+                            atributo.clavePrimaria === true &&
                             <>
                                 <Atributo
                                     key={"c" + entidad.id + "-" + atributo.id}
                                     x={atributo.x}
                                     y={atributo.y}
                                     nombre={atributo.nombre}
-                                    onDragMove={(e) => handleDragMove(e, entidad.id, "identificador compuesto", atributo.id)}
-                                    onDragEnd={(e) => handleDragMove(e, entidad.id, "identificador compuesto", atributo.id)}
+                                    onDragMove={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
+                                    onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
                                 />
                                 <IdentificadorCompuesto entidad={entidad} />
                             </>
                         ))
                     )
+                } */}
+                {/* renderizar identificador compuesto */}
+                {
+                    entidades.map((entidad) =>
+                        tieneIdentificadorCompuesto(entidad) &&
+                        <IdentificadorCompuesto entidad={entidad} />
+                    )
                 }
-
                 {/* renderizar atributos compuestos */}
                 {
                     entidades.map((entidad) =>
@@ -281,6 +326,7 @@ const Diagrama = ({ cb, modo }) => {
                                 nombre={atributoCompuesto.nombre}
                                 onDragMove={(e) => handleDragMove(e, entidad.id, "atributo compuesto", atributoCompuesto.id)}
                                 onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo compuesto", atributoCompuesto.id)}
+                                onDblClick={(e) => handleDblClick(e, entidad.id, "atributo compuesto", "atributo", atributoCompuesto.nombre, atributoCompuesto.id)}
                             />
                         ))
                     )
@@ -297,6 +343,7 @@ const Diagrama = ({ cb, modo }) => {
                                     nombre={atributo.nombre}
                                     onDragMove={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id, atributoCompuesto.id)}
                                     onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id, atributoCompuesto.id)}
+                                    onDblClick={(e) => handleDblClick(e, entidad.id, "atributo", "atributo", atributo.nombre, atributo.id, atributoCompuesto.id)}
                                 />
                             ))
                         ))
@@ -312,7 +359,7 @@ const Diagrama = ({ cb, modo }) => {
                             nombre={relacion.nombre}
                             onDragMove={(e) => handleDragMove(e, relacion.id, "relacion")}
                             onDragEnd={(e) => handleDragMove(e, relacion.id, "relacion")}
-                            onDblClick={(e) => handleDblClick(e, relacion.id, "relacion", relacion.nombre)}
+                            onDblClick={(e) => handleDblClick(e, relacion.id, "relacion", "relacion", relacion.nombre)}
                         />
                     ))
                 }

@@ -8,7 +8,11 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
 
     const entidades = useSelector((state) => state.diagram.entidades);
 
+    const relaciones = useSelector((state) => state.diagram.relaciones);
+
     const [atributo, setAtributo] = useState("");
+
+    const [identificadoresExternos, setIdentificadoresExternos] = useState("");
 
     const opcionesCardinalidad = [
         {
@@ -56,15 +60,26 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
 
     const asignarElemento = () => {
         if (element !== "") {
-            const entidad = entidades.find(entidad => entidad.id === element.id);
-            const atributo = entidad.atributos.find(atributo => atributo.id === element.idAttribute);
+            var elemento = "";
+            if (element.esRelacion !== undefined) {
+                elemento = relaciones.find(relacion => relacion.id === element.id);
+                var elementos = elemento["atributos"];
+            } else {
+                elemento = entidades.find(entidad => entidad.id === element.id);
+                var tipoDeAtributo = element.type === "atributo" ? "atributos" : "atributosCompuestos";
+                var elementos = elemento[tipoDeAtributo];
+            }
+            var atributo = elementos.find(atributo => atributo.id === element.idAttribute);
             setAtributo(atributo);
             const data = {
                 nombre: atributo.nombre,
-                dueño: { id: entidad.id, idc: element.idc },
-                clavePrimaria: atributo.clavePrimaria,
+                dueño: { id: elemento.id, idc: element.idc },
+                clavePrimaria: atributo.clavePrimaria === true,
                 cardinalidad: obtenerCardinalidad(atributo.cardinalidadMinima, atributo.cardinalidadMaxima),
-                esCompuesto: atributo.type === "atributo compuesto"
+                tipo: atributo.type
+            }
+            if (element.esRelacion !== undefined) {
+                data.esRelacion = true;
             }
             setFormData(data);
         }
@@ -79,7 +94,8 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
         dueño: "",
         clavePrimaria: false,
         cardinalidad: "",
-        esCompuesto: false,
+        tipo: "atributo",
+        identificadorExterno: ""
     });
 
     const [formErrors, setFormErrors] = useState({
@@ -87,7 +103,8 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
         dueño: false,
         clavePrimaria: false,
         cardinalidad: false,
-        esCompuesto: false,
+        tipo: false,
+        identificadorExterno: false
     });
 
     const getAtributosCompuestos = () => {
@@ -101,6 +118,54 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
         })
         return atributosCompuestos;
     }
+
+    const cardinalidadEs1A1 = (entidad) => {
+        if ((entidad.cardinalidadMinima === 1) && (entidad.cardinalidadMaxima === 1)) return true;
+        return false;
+    }
+    const getEntidadRelacionada = (entidadId, relacion) => {
+        if (relacion.entidades[0].id === entidadId) {
+            if (cardinalidadEs1A1(relacion.entidades[1]))
+                return relacion.entidades[1].id;
+        }
+        if (relacion.entidades[1].id === entidadId) {
+            if (cardinalidadEs1A1(relacion.entidades[0]))
+                return relacion.entidades[0].id;
+        }
+        return false;
+    }
+
+    const getEntidad = (id) => {
+        const entidad = entidades.find((entidad) => entidad.id === id);
+        return entidad;
+    }
+
+    const getListaEntidades = (listaIds) => {
+        const listaEntidades = [];
+        listaIds.forEach(idEntidad => {
+            listaEntidades.push(getEntidad(idEntidad));
+        })
+        if (listaEntidades.length === 0) return "";
+        return listaEntidades;
+    }
+    const getIdentificadoresExternos = () => {
+        const { id, idc, esRelacion } = formData.dueño;
+        if ((idc === "-1") && (esRelacion === undefined)) {
+            var identificadoresExternos = [];
+            relaciones.forEach(relacion => {
+                var entidadRelacionada = getEntidadRelacionada(id, relacion);
+                if (entidadRelacionada !== false)
+                    identificadoresExternos.push(entidadRelacionada);
+            })
+            const listaEntidades = getListaEntidades(identificadoresExternos);
+            setIdentificadoresExternos(listaEntidades);
+        }
+        else
+            setIdentificadoresExternos("");
+
+    }
+
+    useEffect(getIdentificadoresExternos, [formData]);
 
     const toggleDialog = () => {
         var dialog = document.getElementById("crearAtributo");
@@ -127,7 +192,9 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
             dueño: "",
             clavePrimaria: false,
             cardinalidad: "",
-            esCompuesto: false,
+            tipo: "atributo",
+            esRelacion: undefined,
+            identificadorExterno: ""
         });
         setFormErrors({
             nombre: false,
@@ -135,28 +202,33 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
             clavePrimaria: false,
             cardinalidad: false,
             esCompuesto: false,
+            identificadorExterno: false
         });
         document.getElementById("crearAtributoForm").reset();
         dispatch(closeDialog());
     }
 
     const crearAtributo = () => {
-        const { dueño, nombre, clavePrimaria, cardinalidad, esCompuesto } = formData;
-        const { id, idc } = dueño;
-        const { content } = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad);
-        const elementData = { x, y, nombre, clavePrimaria, ...content };
-        const type = esCompuesto ? "atributo compuesto" : "atributo";
-        dispatch(createElement({ elementData, type, id, idc }));
+        const { dueño, nombre, clavePrimaria, cardinalidad, tipo, identificadorExterno } = formData;
+        const { id, idc, esRelacion } = dueño;
+        const type = tipo;
+        if (tipo !== "externo") {
+            const { content } = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad);
+            const elementData = { x, y, nombre, clavePrimaria, ...content };
+            dispatch(createElement({ elementData, type, id, idc, esRelacion }));
+        } else {
+            const elementData = { entidad: identificadorExterno };
+            dispatch(createElement({ elementData, type, id }));
+        }
     }
 
     const editarAtributo = () => {
-        const { dueño, nombre, clavePrimaria, cardinalidad, esCompuesto } = formData;
+        const { dueño, nombre, clavePrimaria, cardinalidad, tipo, esRelacion } = formData;
         const { id, idc } = dueño;
         const { content } = opcionesCardinalidad.find(elemento => elemento.text === cardinalidad);
         const values = { nombre, clavePrimaria, ...content };
-        const type = esCompuesto ? "atributo compuesto" : "atributo";
-        console.log("idc: ", idc);
-        dispatch(manageElements({ values, id, type, idc, idAttribute: atributo.id }));
+        const type = tipo;
+        dispatch(manageElements({ values, id, type, idc, idAttribute: atributo.id, esRelacion }));
     }
 
     const handleInputChange = (event) => {
@@ -176,9 +248,9 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
 
     const handleOptionChange = (event) => {
         const { value } = event.target;
-        const esCompuesto = value === "simple" ? false : true;
-        setFormData({ ...formData, esCompuesto })
-        setFormErrors({ ...formErrors, esCompuesto: false });
+        const tipo = value;
+        setFormData({ ...formData, tipo })
+        setFormErrors({ ...formErrors, tipo: false });
 
     };
 
@@ -189,13 +261,15 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
 
     function handleSubmit(e) {
         e.preventDefault();
-        const { dueño, nombre, cardinalidad } = formData;
+        const { dueño, nombre, cardinalidad, identificadorExterno, tipo } = formData;
         const err = {
             ...formErrors,
             nombre: nombre.trim() === "",
             dueño: dueño === "",
-            cardinalidad: cardinalidad === "",
+            cardinalidad: cardinalidad === "" && tipo !== "externo",
+            identificadorExterno: ((identificadorExterno === "") && (tipo === "externo"))
         };
+
         if (!formHasErrors(err)) {
             if (element === "") {
                 crearAtributo();
@@ -211,10 +285,14 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
     return (
         <>
             <dialog id="crearAtributo" className="modal" onClose={resetForm}>
+                {
+
+                }
                 <h1>
                     {element === "" ? "Crear atributo" : "Editar atributo"}
                 </h1>
                 <form method="post" id="crearAtributoForm" onSubmit={handleSubmit}>
+                    {/* nombre */}
                     <label>
                         Nombre:
                     </label>
@@ -226,13 +304,10 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
                             <br />
                         </>
                     }
+                    {/* tipo */}
                     {
                         element === "" &&
                         <>
-                            <input type="radio" id="simple" name="tipo" value="simple" onChange={handleOptionChange} checked={formData.esCompuesto === false} />
-                            <label htmlFor="simple">Simple</label>
-                            <input type="radio" id="compuesto" name="tipo" value="compuesto" onChange={handleOptionChange} checked={formData.esCompuesto === true} />
-                            <label htmlFor="compuesto">Compuesto</label><br />
                             <label>
                                 Dueño:
                             </label>
@@ -240,14 +315,14 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
                                 <option value="">Seleccione dueño...</option>
                                 <optgroup label="Entidades">
                                     {entidades.map((entidad, index) =>
-                                        <option value={JSON.stringify({ id: entidad.id, idc: -1 })} key={"ce-" + index + "-" + entidad}>{entidad.nombre}</option>
+                                        <option value={JSON.stringify({ id: entidad.id, idc: "-1" })} key={"ce-" + index + "-" + entidad}>{entidad.nombre}</option>
                                     )}
                                 </optgroup>
-                                {/*  <optgroup label="Relaciones">
+                                <optgroup label="Relaciones">
                                     {relaciones.map((relacion, index) =>
-                                    <option value={JSON.stringify({ id: entidad.id, idc: -1 })} key={"ce-" + index + "-" + entidad}>{entidad.nombre}</option>
-                                )}
-                                </optgroup> */}
+                                        <option value={JSON.stringify({ id: relacion.id, idc: "-1", esRelacion: true })} key={"ce-" + index + "-" + relacion}>{relacion.nombre}</option>
+                                    )}
+                                </optgroup>
                                 <optgroup label="Atributos compuestos">
                                     {getAtributosCompuestos().map((atributoCompuesto, index) =>
                                         <option value={JSON.stringify({ id: atributoCompuesto.entidad, idc: atributoCompuesto.id })} key={"cac-" + index + "-" + atributoCompuesto}>{atributoCompuesto.nombre}</option>
@@ -262,33 +337,70 @@ const CrearAtributo = ({ isOpen, x, y, element }) => {
                                     <br />
                                 </>
                             }
+                            <input type="radio" id="simple" name="tipo" value="atributo" onChange={handleOptionChange} checked={formData.tipo === "atributo"} />
+                            <label htmlFor="simple">Simple</label>
+                            <input type="radio" id="compuesto" name="tipo" value="atributo compuesto" onChange={handleOptionChange} checked={formData.tipo === "atributo compuesto"} />
+                            <label htmlFor="compuesto">Compuesto</label><br />
+                            {identificadoresExternos !== "" &&
+                                <>
+                                    <input type="radio" id="externo" name="externo" value="externo" onChange={handleOptionChange} checked={formData.tipo === "externo"} />
+                                    <label htmlFor="externo">Identificador externo</label><br />
+                                </>
+                            }
+
                         </>
                     }
-                    <label>
-                        cardinalidad:
-                    </label>
-                    <select name="cardinalidad" value={formData.cardinalidad} onChange={handleDropdownChange}>
-                        <option value="">Seleccione cardinalidad...</option>
-                        {opcionesCardinalidad.map((opcionCardinalidad, index) =>
-                            <option value={opcionCardinalidad.text} key={"caoc-" + index} selected={opcionCardinalidad.text === formData.cardinalidad}>
-                                {opcionCardinalidad.text}
-                            </option>
-                        )}
-                    </select>
-                    <br />
-                    {formErrors.cardinalidad &&
+                    {formData.tipo !== "externo" ?
                         <>
-                            <span className="error-message">Seleccione cardinalidad.</span>
+                            <label>
+                                cardinalidad:
+                            </label>
+                            <select name="cardinalidad" value={formData.cardinalidad} onChange={handleDropdownChange}>
+                                <option value="">Seleccione cardinalidad...</option>
+                                {opcionesCardinalidad.map((opcionCardinalidad, index) =>
+                                    <option value={opcionCardinalidad.text} key={"caoc-" + index} selected={opcionCardinalidad.text === formData.cardinalidad}>
+                                        {opcionCardinalidad.text}
+                                    </option>
+                                )}
+                            </select>
                             <br />
+                            {formErrors.cardinalidad &&
+                                <>
+                                    <span className="error-message">Seleccione cardinalidad.</span>
+                                    <br />
+                                </>
+                            }
+                            {formData.tipo === "atributo" &&
+                                <>
+                                    <input type="checkbox" id="clavePrimaria" name="clavePrimaria" onChange={handleCheckboxChange} checked={formData.clavePrimaria} />
+                                    <label htmlFor="clavePrimaria"> Es clave primaria</label>
+                                    <br />
+                                </>
+                            }
                         </>
-                    }
-                    {!formData.esCompuesto &&
+                        :
                         <>
-                            <input type="checkbox" id="clavePrimaria" name="clavePrimaria" onChange={handleCheckboxChange} checked={formData.clavePrimaria} />
-                            <label htmlFor="clavePrimaria"> Es clave primaria</label>
+                            <label>Seleccione entidad: </label>
+
+                            <select name="identificadorExterno" value={formData.identificadorExterno} onChange={handleDropdownChange}>
+                                <option value="">Seleccione entidad...</option>
+                                {identificadoresExternos.map((identificador, index) =>
+                                    <option value={identificador.id} key={"caoc-" + index} selected={identificador.id === formData.identificadorExterno}>
+                                        {identificador.nombre}
+                                    </option>
+                                )}
+                            </select>
                             <br />
+                            {formErrors.identificadorExterno &&
+                                <>
+                                    <span className="error-message">Seleccione identificador externo.</span>
+                                    <br />
+                                </>
+                            }
                         </>
+
                     }
+
                     <button type="submit" id="closeModal" className="modal-close-btn">
                         {element === "" ? "Crear atributo" : "Editar atributo"}
                     </button>

@@ -14,12 +14,13 @@ const CrearJerarquía = ({ isOpen, x, y, element }) => {
 
     const [formData, setFormData] = useState({
         nombre: "",
-        entidadPadre: "",
+        idEntidadPadre: "",
         cobertura: ""
     });
 
     const [formErrors, setFormErrors] = useState({
-        entidadPadre: false,
+        nombre: false,
+        idEntidadPadre: false,
         cobertura: false,
     });
 
@@ -32,11 +33,11 @@ const CrearJerarquía = ({ isOpen, x, y, element }) => {
     const asignarElemento = () => {
         if (element !== "") {
             const entidad = entidades.find(entidad => entidad.id === element.id);
-            setEntidadPadre(entidadPadre);
+            setEntidadPadre(entidad);
             const data = {
                 nombre: entidad.nombre,
                 cobertura: entidad.cobertura,
-                entidadPadre: entidad.id
+                idEntidadPadre: entidad.id
             }
             const entidadesHijo = [];
             entidad.hijos.forEach(idHijo => {
@@ -78,18 +79,20 @@ const CrearJerarquía = ({ isOpen, x, y, element }) => {
     useEffect(cargarEntidades, [isOpen]);
 
     const crearJerarquía = () => {
-        const { entidadPadre, cobertura } = formData;
+        const { idEntidadPadre, cobertura } = formData;
         const values = {
             subType: "padre",
             cobertura,
             hijos: []
         }
+        const id = parseInt(idEntidadPadre);
         selectedOptions.forEach(option => {
             values.hijos.push(option.value);
             let subValues = { subType: "hijo" };
             dispatch(manageElements({ values: subValues, type: "entidad", id: option.value }));
         })
-        dispatch(manageElements({ values, type: "entidad", id: entidadPadre }));
+        dispatch(manageElements({ id, values, type: "entidad" }));
+
     }
 
     const esHijo = (entidad, hijos) => {
@@ -102,17 +105,13 @@ const CrearJerarquía = ({ isOpen, x, y, element }) => {
     }
 
     const editarJerarquía = () => {
-        const { entidadPadre, cobertura, nombre } = formData;
+        const { idEntidadPadre, cobertura, nombre } = formData;
         const values = {
             cobertura,
             nombre,
             hijos: []
         }
-        /* selectedOptions.forEach(option => {
-            values.hijos.push(option.value);
-            let subValues = { subType: "hijo" };
-            dispatch(manageElements({ values: subValues, type: "entidad", id: option.value }));
-        }) */
+
         selectedOptions.forEach(option => {
             values.hijos.push(option.value);
         });
@@ -126,7 +125,7 @@ const CrearJerarquía = ({ isOpen, x, y, element }) => {
             }
             dispatch(manageElements({ values: subValues, type: "entidad", id: entidad.id }));
         })
-        dispatch(manageElements({ values, type: "entidad", id: entidadPadre }));
+        dispatch(manageElements({ values, type: "entidad", id: entidadPadre.id }));
     }
 
     const formHasErrors = (err) => {
@@ -139,16 +138,19 @@ const CrearJerarquía = ({ isOpen, x, y, element }) => {
 
     const resetForm = () => {
         setFormData({
-            entidadPadre: "",
+            nombre: "",
+            idEntidadPadre: "",
             cobertura: ""
         });
         setFormErrors({
-            entidadPadre: false,
+            nombre: false,
+            idEntidadPadre: false,
             cobertura: false,
         })
         document.getElementById("CrearJerarquíaForm").reset();
         setSelectedOptions([]);
         dispatch(closeDialog());
+        setEntidadPadre("");
     }
 
     const handleDropdownChange = (event) => {
@@ -165,10 +167,10 @@ const CrearJerarquía = ({ isOpen, x, y, element }) => {
 
     function handleSubmit(e) {
         e.preventDefault();
-        const { entidadPadre, cobertura } = formData;
+        const { idEntidadPadre, cobertura, nombre } = formData;
         const err = {
             ...formErrors,
-            entidadPadre: entidadPadre === '',
+            idEntidadPadre: idEntidadPadre === '',
             cobertura: cobertura === "",
         };
         if (!formHasErrors(err)) {
@@ -196,14 +198,14 @@ const CrearJerarquía = ({ isOpen, x, y, element }) => {
                                 <label>
                                     Entidad padre:
                                 </label>
-                                <select name="entidadPadre" value={formData.entidadPadre} onChange={handleDropdownChange}>
+                                <select name="idEntidadPadre" value={formData.idEntidadPadre} onChange={handleDropdownChange}>
                                     <option value="">Seleccione entidad...</option>
                                     {entidades.map((entidad, index) =>
                                         <option value={entidad.id} key={"cjep-" + index + "-" + entidad}>{entidad.nombre}</option>
                                     )}
                                 </select>
                                 <br />
-                                {formErrors.entidadPadre &&
+                                {formErrors.idEntidadPadre &&
                                     <>
                                         <span className="error-message">Seleccione entidad padre.</span>
                                         <br />

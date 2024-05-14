@@ -1,3 +1,4 @@
+
 import { configureStore } from "@reduxjs/toolkit";
 import userReducer from "./userSlice";
 import diagramReducer from "./diagramSlice"
@@ -6,6 +7,7 @@ export const store = configureStore({
     reducer: {
         user: userReducer,
         diagram: diagramReducer,
-        modal: modalSlice
+        modal: modalSlice,
     },
+    devTools: process.env.NODE_ENV !== 'production',
 });

@@ -30,6 +30,8 @@ const CrearRelacion = ({ isOpen, x, y, element }) => {
 
     const [relacion, setRelacion] = useState("");
 
+    const [listaEntidades, setListaEntidades] = useState("");
+
     const obtenerCardinalidad = (minima, maxima) => {
         if (minima === undefined || maxima === undefined)
             return "1..1";
@@ -132,6 +134,26 @@ const CrearRelacion = ({ isOpen, x, y, element }) => {
         dispatch(manageElements({ values, type: "relacion", id: relacion.id }));
     }
 
+    const obtenerNombreEntidad = (idEntidad) => {
+        const entidadABuscar = entidades.find(entidad => entidad.id === idEntidad);
+        const nombreEntidad = entidadABuscar.nombre;
+        return nombreEntidad;
+    }
+
+    const obtenerListaEntidades = () => {
+        const { idEntidad1, idEntidad2 } = formData;
+        if (idEntidad1 !== "") {
+            const nombreEntidad1 = obtenerNombreEntidad(idEntidad1);
+            const nombreEntidad2 = obtenerNombreEntidad(idEntidad2);
+            const listaDeEntidades = `${nombreEntidad1},${nombreEntidad2} `;
+            setListaEntidades(listaDeEntidades);
+        } else {
+            setListaEntidades("");
+        }
+    }
+
+    useEffect(obtenerListaEntidades, [formData]);
+
     const resetForm = () => {
         setFormData({
             nombre: "",
@@ -193,6 +215,11 @@ const CrearRelacion = ({ isOpen, x, y, element }) => {
                 <h1>
                     {element === "" ? "Crear relación" : "Editar relación"}
                 </h1>
+                {element !== "" &&
+                    <>
+                        <h2>Entidades: {listaEntidades}</h2>
+                    </>
+                }
                 <form method="post" onSubmit={handleSubmit} id="crearRelacionForm">
                     <label>
                         Nombre:
@@ -205,21 +232,24 @@ const CrearRelacion = ({ isOpen, x, y, element }) => {
                             <br />
                         </>
                     }
-                    <label>
-                        entidad 1:
-                    </label>
-
-                    <select name="idEntidad1" value={formData.idEntidad1} onChange={handleDropdownChange}>
-                        <option value="">Seleccione entidad...</option>
-                        {entidades.map((entidad, index) =>
-                            <option value={entidad.id} key={"cre1-" + index}>{entidad.nombre}</option>
-                        )}
-                    </select>
-                    <br />
-                    {formErrors.idEntidad1 &&
+                    {element === "" &&
                         <>
-                            <span className="error-message">Seleccione la entidad.</span>
+                            <label>
+                                entidad 1:
+                            </label>
+                            <select name="idEntidad1" value={formData.idEntidad1} onChange={handleDropdownChange}>
+                                <option value="">Seleccione entidad...</option>
+                                {entidades.map((entidad, index) =>
+                                    <option value={entidad.id} key={"cre1-" + index}>{entidad.nombre}</option>
+                                )}
+                            </select>
                             <br />
+                            {formErrors.idEntidad1 &&
+                                <>
+                                    <span className="error-message">Seleccione la entidad.</span>
+                                    <br />
+                                </>
+                            }
                         </>
                     }
                     <label>
@@ -238,20 +268,24 @@ const CrearRelacion = ({ isOpen, x, y, element }) => {
                             <br />
                         </>
                     }
-                    <label>
-                        Entidad 2:
-                    </label>
-                    <select name="idEntidad2" value={formData.idEntidad2} onChange={handleDropdownChange}>
-                        <option value="">Seleccione entidad...</option>
-                        {entidades.map((entidad, index) =>
-                            <option value={entidad.id} key={"cre2-" + index}>{entidad.nombre}</option>
-                        )}
-                    </select>
-                    <br />
-                    {formErrors.idEntidad2 &&
+                    {element === "" &&
                         <>
-                            <span className="error-message">Seleccione la entidad.</span>
+                            <label>
+                                Entidad 2:
+                            </label>
+                            <select name="idEntidad2" value={formData.idEntidad2} onChange={handleDropdownChange}>
+                                <option value="">Seleccione entidad...</option>
+                                {entidades.map((entidad, index) =>
+                                    <option value={entidad.id} key={"cre2-" + index}>{entidad.nombre}</option>
+                                )}
+                            </select>
                             <br />
+                            {formErrors.idEntidad2 &&
+                                <>
+                                    <span className="error-message">Seleccione la entidad.</span>
+                                    <br />
+                                </>
+                            }
                         </>
                     }
                     <label>

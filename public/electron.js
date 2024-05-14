@@ -1,6 +1,6 @@
 const { app, BrowserWindow } = require('electron')
-
-function createWindow () {
+const isDev = require('electron-is-dev');
+function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
     width: 800,
@@ -11,7 +11,7 @@ function createWindow () {
   })
 
   //load the index.html from a url
-  win.loadURL('http://localhost:3000');
+  win.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
 
   // Open the DevTools.
   win.webContents.openDevTools()
@@ -34,7 +34,7 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  
+
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow()
   }

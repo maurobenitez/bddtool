@@ -41,17 +41,8 @@ const IdentificadorCompuesto = ({ entidad }) => {
     }
 
     function buscarEntidad(idEntidad) {
-        return entidades.find(entidad => entidad.id == idEntidad);
+        return entidades.find(entidad => entidad.id === idEntidad);
     }
-
-    /*  
-    function buscarRelacion(entidad1, entidad2) {
-        const listaRelaciones = getListaRelaciones();
-        const areSetsEqual = (a, b) => a.size === b.size && [...a].every(value => b.has(value));
-        const elementosAComparar = new Set([entidad1, entidad2]);
-        return areSetsEqual(listaRelaciones, elementosAComparar);
-    } 
-     */
 
     function calculateDistance(x1, y1, x2, y2) {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
@@ -92,14 +83,31 @@ const IdentificadorCompuesto = ({ entidad }) => {
         return { x, y };
     }
 
+    /*  const calcularPuntos = () => {
+         const { identificadorCompuesto } = entidad;
+         let puntos = [];
+         identificadorCompuesto.forEach(atributo => {
+             if (atributo.type != "externo") {
+                 let punto = calcularLinea(entidad, atributo);
+                 puntos.push(calcularPuntoMedio(punto));
+             } else {
+                 let relacion = buscarRelacion(entidad.id, atributo.entidad);
+                 let entidad2 = buscarEntidad(atributo.entidad);
+                 let punto = calcularLinea(relacion, entidad2);
+                 puntos.push(calcularPuntoMedio(punto));
+             }
+         })
+         return puntos;
+     } */
+
     const calcularPuntos = () => {
-        const { identificadorCompuesto } = entidad;
+        const { atributos } = entidad;
         let puntos = [];
-        identificadorCompuesto.forEach(atributo => {
-            if (atributo.type != "externo") {
+        atributos.forEach(atributo => {
+            if (atributo.clavePrimaria === true) {
                 let punto = calcularLinea(entidad, atributo);
                 puntos.push(calcularPuntoMedio(punto));
-            } else {
+            } else if (atributo.type === "externo") {
                 let relacion = buscarRelacion(entidad.id, atributo.entidad);
                 let entidad2 = buscarEntidad(atributo.entidad);
                 let punto = calcularLinea(relacion, entidad2);

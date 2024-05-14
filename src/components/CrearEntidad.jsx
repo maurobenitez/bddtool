@@ -53,6 +53,7 @@ const CrearEntidad = ({ isOpen, x, y, element }) => {
     const editarEntidad = () => {
         const values = { nombre: nombreEntidad };
         const idEntidad = entidad.id;
+        console.log(idEntidad);
         dispatch(manageElements({ values, id: idEntidad, type: "entidad" }));
     }
 

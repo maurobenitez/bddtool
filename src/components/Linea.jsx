@@ -99,6 +99,17 @@ const Linea = ({ figuraA, figuraB, text }) => {
         return text;
     }
 
+    const tieneIdentificadorCompuesto = (entidad) => {
+        const { atributos } = entidad;
+        var cantidadClaves = 0;
+        atributos.forEach(atributo => {
+            if (atributo.clavePrimaria === true)
+                cantidadClaves = cantidadClaves + 1;
+        })
+        if (cantidadClaves > 1) return true;
+        return false;
+    }
+
     const [line, lado] = calcularLinea()
     const nuevaLinea = calcularNuevaLinea(...line, lado);
     const punto = calcularPunto(line, nuevaLinea, lado);
@@ -136,7 +147,11 @@ const Linea = ({ figuraA, figuraB, text }) => {
                         radius={5}
                         stroke="black"
                         strokeWidth={1}
-                        fill={figuraA.clavePrimaria === true ? "black" : "white"}
+                        fill={(tieneIdentificadorCompuesto(figuraB) === false) && (figuraA.clavePrimaria === true) ? "black" : "white"}
+                    /*                         
+                    fill={figuraA.clavePrimaria === true ? "black" : "white"}
+                     */
+
                     />
                 )
             }
