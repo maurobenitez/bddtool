@@ -13,6 +13,12 @@ const Linea = ({ figuraA, figuraB, text }) => {
     }
 
     const calcularLinea = () => {
+        if (figuraA.type === undefined) {
+            console.log(figuraA);
+        }
+        if (figuraB.type === undefined) {
+            console.log(figuraB);
+        }
         const offsetFiguraA = componentes[figuraA.type].funcionOffset(figuraA);
         const offsetFiguraB = componentes[figuraB.type].funcionOffset(figuraB);
         var min_distance = Number.MAX_SAFE_INTEGER;

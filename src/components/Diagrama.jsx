@@ -12,9 +12,9 @@ import { setPosition, openDialog, openEditOrDelete } from '../redux/modalSlice';
 import IdentificadorCompuesto from './IdentificadorCompuesto';
 import Jerarquía from './Jerarquía';
 
-const Diagrama = ({ cb, modo }) => {
-    const stageRef = useRef(null);
-    const entidades = useSelector((state) => state.diagram.entidades);
+const Diagrama = ({ cb, modo, stageRef }) => {
+/*     const stageRef = useRef(null);
+ */    const entidades = useSelector((state) => state.diagram.entidades);
     const relaciones = useSelector((state) => state.diagram.relaciones);
 
     const dispatch = useDispatch();
@@ -194,103 +194,106 @@ const Diagrama = ({ cb, modo }) => {
         const element = { id: idEntidad, type: tipo, dialogType, nombre, idAttribute, idc, esRelacion };
         dispatch(openEditOrDelete({ element }));
     }
+
     return (
-        <Stage width={window.innerWidth} height={window.innerHeight} onClick={handleClick} ref={stageRef}>
-            <Layer>
-                {/* renderizar lineas */}
-                {enlaces.map((enlace, index) => (
-                    <Linea
-                        key={index}
-                        figuraA={enlace.primero}
-                        figuraB={enlace.segundo}
-                        text={enlace.text}
-                    />
-                ))}
-                {/* renderizar entidades */}
-                {entidades.map((entidad) =>
-                    ((entidad.subType !== "hijo") && (entidad.subType !== "padre")) &&
-                    <Entidad
-                        key={"e" + entidad.id}
-                        x={entidad.x}
-                        y={entidad.y}
-                        nombre={entidad.nombre}
-                        onDragMove={(e) => handleDragMove(e, entidad.id, "entidad")}
-                        onDragEnd={(e) => handleDragMove(e, entidad.id, "entidad")}
-                        onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", "entidad", entidad.nombre)}
-                    />
-                )}
-                {/* renderizar entidades padre */}
-                {entidades.map((entidad) =>
-                    (entidad.subType === "padre") &&
-                    <Entidad
-                        key={"e" + entidad.id}
-                        x={entidad.x}
-                        y={entidad.y}
-                        nombre={entidad.nombre}
-                        onDragMove={(e) => handleDragMove(e, entidad.id, "entidad")}
-                        onDragEnd={(e) => handleDragMove(e, entidad.id, "entidad")}
-                        onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", "jerarquía", entidad.nombre)}
-                    />
-                )}
-                {/* renderizar entidades hijo de jerarquías */}
-                {entidades.map((entidad) =>
-                    (entidad.subType === "hijo") &&
-                    <Entidad
-                        key={"e" + entidad.id}
-                        x={entidad.x}
-                        y={entidad.y}
-                        nombre={entidad.nombre}
-                        draggable={false}
-                        onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", "entidad", entidad.nombre)}
+        <>
 
-                    />
+            <Stage width={window.innerWidth} height={window.innerHeight} onClick={handleClick} ref={stageRef}>
+                <Layer>
+                    {/* renderizar lineas */}
+                    {enlaces.map((enlace, index) => (
+                        <Linea
+                            key={index}
+                            figuraA={enlace.primero}
+                            figuraB={enlace.segundo}
+                            text={enlace.text}
+                        />
+                    ))}
+                    {/* renderizar entidades */}
+                    {entidades.map((entidad) =>
+                        ((entidad.subType !== "hijo") && (entidad.subType !== "padre")) &&
+                        <Entidad
+                            key={"e" + entidad.id}
+                            x={entidad.x}
+                            y={entidad.y}
+                            nombre={entidad.nombre}
+                            onDragMove={(e) => handleDragMove(e, entidad.id, "entidad")}
+                            onDragEnd={(e) => handleDragMove(e, entidad.id, "entidad")}
+                            onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", "entidad", entidad.nombre)}
+                        />
+                    )}
+                    {/* renderizar entidades padre */}
+                    {entidades.map((entidad) =>
+                        (entidad.subType === "padre") &&
+                        <Entidad
+                            key={"e" + entidad.id}
+                            x={entidad.x}
+                            y={entidad.y}
+                            nombre={entidad.nombre}
+                            onDragMove={(e) => handleDragMove(e, entidad.id, "entidad")}
+                            onDragEnd={(e) => handleDragMove(e, entidad.id, "entidad")}
+                            onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", "jerarquía", entidad.nombre)}
+                        />
+                    )}
+                    {/* renderizar entidades hijo de jerarquías */}
+                    {entidades.map((entidad) =>
+                        (entidad.subType === "hijo") &&
+                        <Entidad
+                            key={"e" + entidad.id}
+                            x={entidad.x}
+                            y={entidad.y}
+                            nombre={entidad.nombre}
+                            draggable={false}
+                            onDblClick={(e) => handleDblClick(e, entidad.id, "entidad", "entidad", entidad.nombre)}
 
-                )}
-                {/* renderizar jerarquías */}
-                {entidades.map((entidad) =>
-                    (entidad.subType === "padre") &&
-                    <Jerarquía
-                        key={"j" + entidad.id}
-                        id={entidad.id}
-                    />
+                        />
 
-                )}
-                {/* renderizar atributos de entidades */}
-                {
-                    entidades.map((entidad) =>
-                        entidad.atributos && entidad.atributos.map((atributo) => (
-                            (atributo.type !== "externo") && (
+                    )}
+                    {/* renderizar jerarquías */}
+                    {entidades.map((entidad) =>
+                        (entidad.subType === "padre") &&
+                        <Jerarquía
+                            key={"j" + entidad.id}
+                            id={entidad.id}
+                        />
+
+                    )}
+                    {/* renderizar atributos de entidades */}
+                    {
+                        entidades.map((entidad) =>
+                            entidad.atributos && entidad.atributos.map((atributo) => (
+                                (atributo.type !== "externo") && (
+                                    <Atributo
+                                        key={entidad.id + "-" + atributo.id}
+                                        x={atributo.x}
+                                        y={atributo.y}
+                                        nombre={atributo.nombre}
+                                        onDragMove={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
+                                        onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
+                                        onDblClick={(e) => handleDblClick(e, entidad.id, "atributo", "atributo", atributo.nombre, atributo.id)}
+                                    />
+                                )
+                            ))
+                        )
+                    }
+                    {/* renderizar atributos de relaciones */}
+                    {
+                        relaciones.map((relacion) =>
+                            relacion.atributos && relacion.atributos.map((atributo) => (
                                 <Atributo
-                                    key={entidad.id + "-" + atributo.id}
+                                    key={relacion.id + "-" + atributo.id}
                                     x={atributo.x}
                                     y={atributo.y}
                                     nombre={atributo.nombre}
-                                    onDragMove={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
-                                    onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id)}
-                                    onDblClick={(e) => handleDblClick(e, entidad.id, "atributo", "atributo", atributo.nombre, atributo.id)}
+                                    onDragMove={(e) => handleDragMove(e, relacion.id, "atributo", atributo.id, "-1", "-1", true)}
+                                    onDragEnd={(e) => handleDragMove(e, relacion.id, "atributo", atributo.id, "-1", "-1", true)}
+                                    onDblClick={(e) => handleDblClick(e, relacion.id, "atributo", "atributo", atributo.nombre, atributo.id, "-1", "-1", true)}
                                 />
-                            )
-                        ))
-                    )
-                }
-                {/* renderizar atributos de relaciones */}
-                {
-                    relaciones.map((relacion) =>
-                        relacion.atributos && relacion.atributos.map((atributo) => (
-                            <Atributo
-                                key={relacion.id + "-" + atributo.id}
-                                x={atributo.x}
-                                y={atributo.y}
-                                nombre={atributo.nombre}
-                                onDragMove={(e) => handleDragMove(e, relacion.id, "atributo", atributo.id, "-1", "-1", true)}
-                                onDragEnd={(e) => handleDragMove(e, relacion.id, "atributo", atributo.id, "-1", "-1", true)}
-                                onDblClick={(e) => handleDblClick(e, relacion.id, "atributo", "atributo", atributo.nombre, atributo.id, "-1", "-1", true)}
-                            />
-                        ))
-                    )
-                }
-                {/* renderizar atributos de identificador compuesto */}
-                {/* {
+                            ))
+                        )
+                    }
+                    {/* renderizar atributos de identificador compuesto */}
+                    {/* {
                     entidades.map((entidad) =>
                         tieneIdentificadorCompuesto(entidad) && entidad.atributos.map((atributo) => (
                             atributo.clavePrimaria === true &&
@@ -308,64 +311,65 @@ const Diagrama = ({ cb, modo }) => {
                         ))
                     )
                 } */}
-                {/* renderizar identificador compuesto */}
-                {
-                    entidades.map((entidad) =>
-                        tieneIdentificadorCompuesto(entidad) &&
-                        <IdentificadorCompuesto entidad={entidad} />
-                    )
-                }
-                {/* renderizar atributos compuestos */}
-                {
-                    entidades.map((entidad) =>
-                        entidad.atributosCompuestos && entidad.atributosCompuestos.map((atributoCompuesto) => (
-                            <AtributoCompuesto
-                                key={"ac" + entidad.id + "-" + atributoCompuesto.id}
-                                x={atributoCompuesto.x}
-                                y={atributoCompuesto.y}
-                                nombre={atributoCompuesto.nombre}
-                                onDragMove={(e) => handleDragMove(e, entidad.id, "atributo compuesto", atributoCompuesto.id)}
-                                onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo compuesto", atributoCompuesto.id)}
-                                onDblClick={(e) => handleDblClick(e, entidad.id, "atributo compuesto", "atributo", atributoCompuesto.nombre, atributoCompuesto.id)}
-                            />
-                        ))
-                    )
-                }
-                {/* renderizar atributos de atributos compuestos */}
-                {
-                    entidades.map((entidad) =>
-                        entidad.atributosCompuestos && entidad.atributosCompuestos.map((atributoCompuesto) => (
-                            atributoCompuesto.atributos && atributoCompuesto.atributos.map((atributo) => (
-                                <Atributo
-                                    key={entidad.id + "-" + atributo.id}
-                                    x={atributo.x}
-                                    y={atributo.y}
-                                    nombre={atributo.nombre}
-                                    onDragMove={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id, atributoCompuesto.id)}
-                                    onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id, atributoCompuesto.id)}
-                                    onDblClick={(e) => handleDblClick(e, entidad.id, "atributo", "atributo", atributo.nombre, atributo.id, atributoCompuesto.id)}
+                    {/* renderizar identificador compuesto */}
+                    {
+                        entidades.map((entidad) =>
+                            tieneIdentificadorCompuesto(entidad) &&
+                            <IdentificadorCompuesto entidad={entidad} />
+                        )
+                    }
+                    {/* renderizar atributos compuestos */}
+                    {
+                        entidades.map((entidad) =>
+                            entidad.atributosCompuestos && entidad.atributosCompuestos.map((atributoCompuesto) => (
+                                <AtributoCompuesto
+                                    key={"ac" + entidad.id + "-" + atributoCompuesto.id}
+                                    x={atributoCompuesto.x}
+                                    y={atributoCompuesto.y}
+                                    nombre={atributoCompuesto.nombre}
+                                    onDragMove={(e) => handleDragMove(e, entidad.id, "atributo compuesto", atributoCompuesto.id)}
+                                    onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo compuesto", atributoCompuesto.id)}
+                                    onDblClick={(e) => handleDblClick(e, entidad.id, "atributo compuesto", "atributo", atributoCompuesto.nombre, atributoCompuesto.id)}
                                 />
                             ))
+                        )
+                    }
+                    {/* renderizar atributos de atributos compuestos */}
+                    {
+                        entidades.map((entidad) =>
+                            entidad.atributosCompuestos && entidad.atributosCompuestos.map((atributoCompuesto) => (
+                                atributoCompuesto.atributos && atributoCompuesto.atributos.map((atributo) => (
+                                    <Atributo
+                                        key={entidad.id + "-" + atributo.id}
+                                        x={atributo.x}
+                                        y={atributo.y}
+                                        nombre={atributo.nombre}
+                                        onDragMove={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id, atributoCompuesto.id)}
+                                        onDragEnd={(e) => handleDragMove(e, entidad.id, "atributo", atributo.id, atributoCompuesto.id)}
+                                        onDblClick={(e) => handleDblClick(e, entidad.id, "atributo", "atributo", atributo.nombre, atributo.id, atributoCompuesto.id)}
+                                    />
+                                ))
+                            ))
+                        )
+                    }
+                    {/* renderizar relaciones */}
+                    {
+                        relaciones.map((relacion) => (
+                            <Relacion
+                                key={"r" + relacion.id}
+                                x={relacion.x}
+                                y={relacion.y}
+                                nombre={relacion.nombre}
+                                onDragMove={(e) => handleDragMove(e, relacion.id, "relacion")}
+                                onDragEnd={(e) => handleDragMove(e, relacion.id, "relacion")}
+                                onDblClick={(e) => handleDblClick(e, relacion.id, "relacion", "relacion", relacion.nombre)}
+                            />
                         ))
-                    )
-                }
-                {/* renderizar relaciones */}
-                {
-                    relaciones.map((relacion) => (
-                        <Relacion
-                            key={"r" + relacion.id}
-                            x={relacion.x}
-                            y={relacion.y}
-                            nombre={relacion.nombre}
-                            onDragMove={(e) => handleDragMove(e, relacion.id, "relacion")}
-                            onDragEnd={(e) => handleDragMove(e, relacion.id, "relacion")}
-                            onDblClick={(e) => handleDblClick(e, relacion.id, "relacion", "relacion", relacion.nombre)}
-                        />
-                    ))
-                }
+                    }
 
-            </Layer>
-        </Stage>
+                </Layer>
+            </Stage>
+        </>
     );
 }
 

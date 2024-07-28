@@ -142,7 +142,7 @@ const CrearRelacion = ({ isOpen, x, y, element }) => {
 
     const obtenerListaEntidades = () => {
         const { idEntidad1, idEntidad2 } = formData;
-        if (idEntidad1 !== "") {
+        if (idEntidad1 !== "" && idEntidad2 !== "") {
             const nombreEntidad1 = obtenerNombreEntidad(idEntidad1);
             const nombreEntidad2 = obtenerNombreEntidad(idEntidad2);
             const listaDeEntidades = `${nombreEntidad1},${nombreEntidad2} `;

@@ -110,7 +110,7 @@ const initialState = {
             type: "entidad",
             subType: "padre",
             hijos: ["3", "4", "5"],
-            cobertura: "T,E",
+            cobertura: "P,E",
             atributos: [
                 /* {
                     id: "ic22",
@@ -131,8 +131,8 @@ const initialState = {
                     y: 310,
                     nombre: "atributo 2",
                     type: "atributo",
-                    clavePrimaria: true,
-                },
+/*                     clavePrimaria: true,
+ */                },
             ],
         },
         {
@@ -142,7 +142,28 @@ const initialState = {
             nombre: "sub 1",
             type: "entidad",
             subType: "hijo",
-            atributos: []
+            atributos: [
+                {
+                    x: 327.1166687011719,
+                    y: 422,
+                    nombre: 'a1',
+                    clavePrimaria: false,
+                    cardinalidadMinima: 1,
+                    cardinalidadMaxima: 1,
+                    id: '9f3059a0-aadc-4230-ac0b-ab66314b60b0',
+                    type: 'atributo'
+                },
+                {
+                    x: 382.1166687011719,
+                    y: 433,
+                    nombre: 'b1',
+                    clavePrimaria: false,
+                    cardinalidadMinima: 1,
+                    cardinalidadMaxima: 1,
+                    id: '21dff3ed-a4c4-47f6-83be-475ff7373e04',
+                    type: 'atributo'
+                }
+            ]
         },
         {
             id: "4",
@@ -151,7 +172,28 @@ const initialState = {
             nombre: "sub entidad 2",
             type: "entidad",
             subType: "hijo",
-            atributos: []
+            atributos: [
+                {
+                    x: 467.1166687011719,
+                    y: 446,
+                    nombre: 'a2',
+                    clavePrimaria: false,
+                    cardinalidadMinima: 1,
+                    cardinalidadMaxima: 1,
+                    id: '720f37e6-911e-4652-ab61-cdf6cfce9bd5',
+                    type: 'atributo'
+                },
+                {
+                    x: 498.1166687011719,
+                    y: 424,
+                    nombre: 'b2',
+                    clavePrimaria: false,
+                    cardinalidadMinima: 1,
+                    cardinalidadMaxima: 1,
+                    id: 'b8ef1d0b-82c0-44f7-bf6a-18075375b39c',
+                    type: 'atributo'
+                }
+            ]
         },
         {
             id: "5",
@@ -160,7 +202,28 @@ const initialState = {
             nombre: "sub entidad 3",
             type: "entidad",
             subType: "hijo",
-            atributos: []
+            atributos: [
+                {
+                    x: 601.1166687011719,
+                    y: 455,
+                    nombre: 'a3',
+                    clavePrimaria: false,
+                    cardinalidadMinima: 1,
+                    cardinalidadMaxima: 1,
+                    id: 'f8747422-da99-4fc1-a3f6-4580b3b8227b',
+                    type: 'atributo'
+                },
+                {
+                    x: 554.1166687011719,
+                    y: 436,
+                    nombre: 'b3',
+                    clavePrimaria: false,
+                    cardinalidadMinima: 1,
+                    cardinalidadMaxima: 1,
+                    id: '4c75cdec-8144-462b-bea1-e02cb20d6e71',
+                    type: 'atributo'
+                }
+            ]
         },
         {
             id: "6",
@@ -275,6 +338,7 @@ export const diagramSlice = createSlice({
                     elemento[key] = values[key];
                 });
             } else if (operation === "borrar") {
+                console.log("aquí2")
                 elementos.splice(elementos.findIndex((item) => item.id === deleteId), 1);
             }
         },
